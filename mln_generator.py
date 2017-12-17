@@ -220,6 +220,6 @@ class MLNGenerator():
             sbj,obj,sent = key.split('-@-')
             sbj = sbj[1:].strip()
             obj = obj[:-1].strip()
-            sent = sent[:-4].strip()
+            sent = sent.strip().split('___')[0].strip()
             f_write.write(instance_dict[key] + '\t' + sbj + '\t' + obj + '\t' + sent + '\n')
         f_write.close()
