@@ -5,4 +5,4 @@ data_path = '/test/wjd1004109/PL-Web-Demo/MLN/data/'
 alchemy_path = '/home/han0ah/alchemy/bin/'
 
 # output Relation의 threshold
-threshold = 0.9
+threshold = 0.1
