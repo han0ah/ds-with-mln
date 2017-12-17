@@ -121,19 +121,21 @@ class MLNResultExtractor():
             if(len(line) < 2):
                 continue
             tt = line.strip().split('\t')
-            instance_dic[tt[0]] = {
-                'sbj' : tt[1],
-                'obj' : tt[2],
-                'sent' : tt[3],
-                'relation' : instance_high_rel[tt[0]][0],
-                'score' : instance_high_rel[tt[0]][1]
-            }
+            if (instance_high_rel[tt[0]][1] >= config.threshold):
+                instance_dic[tt[0]] = {
+                    'sbj' : tt[1],
+                    'obj' : tt[2],
+                    'sent' : tt[3],
+                    'relation' : instance_high_rel[tt[0]][0],
+                    'score' : instance_high_rel[tt[0]][1]
+                }
 
         result = []
-        for i in range(len(instance_dic)):
+        for i in range(len(instance_high_rel)):
             idx = i+1
             key_val = 'M_T' + str(idx)
-            result.append(instance_dic[key_val])
+            if (key_val in instance_dic):
+                result.append(instance_dic[key_val])
 
         return result
 

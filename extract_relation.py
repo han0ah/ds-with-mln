@@ -55,11 +55,15 @@ def write_output(spo_relation_result):
     f.close()
 
 def main():
-    data_obj_list = read_input()
-    re_instance_list = extract_re_instances(data_obj_list)
-    write_markov_logic_network_data(re_instance_list)
-    run_alchemy_inference()
-    spo_relation_result = get_spo_result_list()
+    try:
+        data_obj_list = read_input()
+        re_instance_list = extract_re_instances(data_obj_list)
+        write_markov_logic_network_data(re_instance_list)
+        run_alchemy_inference()
+        spo_relation_result = get_spo_result_list()
+    except:
+        spo_relation_result = []
+
     write_output(spo_relation_result)
 
 if __name__ == '__main__':
