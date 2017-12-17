@@ -12,11 +12,14 @@ class REInstanceExtractor():
         data_obj = self._revise_entity_index(data_obj)
         data_obj = self._revise_etri_morp_index(data_obj)
 
-        # sbj-obj 쌍별로 instance Feature 추출
+
+
+        # 주어 sbj-obj 쌍별로 instance Feature 추출
         re_instance_list = []
         feature_extractor = FeatureExtractor()
         num_entity = len(data_obj['entities'])
-        for i in range(num_entity):
+        i = self._get_sbj_entiy_num(data_obj)
+        if (i >= 0):
             for j in range(num_entity):
                 if i==j:
                     continue
@@ -83,6 +86,23 @@ class REInstanceExtractor():
         for i in range(len(data_obj['morp'])):
             data_obj['morp'][i]['position'] -= mval
         return data_obj
+
+    def _get_sbj_entiy_num(self,data_obj):
+        '''
+        주어인 entity 번호를 찾는다.
+        '''
+        for depitem in data_obj['dependency']:
+            if (depitem['label'] == 'NP_SBJ'):
+                st_idx = data_obj['word'][int(depitem['id'])]['begin']
+                st_byte_loc = data_obj['morp'][st_idx]['position']
+
+                entity_num = 0
+                for entity in data_obj['entities']:
+                    if (entity['start_offset'] == st_byte_loc):
+                        return entity_num
+                    entity_num += 1
+        return -1
+
 
 class FeatureExtractor():
     ''' Mintz et al(2009)에 나온 방식으로 Relation Extraction을 위한 문장의 feature를 추출한다. '''
