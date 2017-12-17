@@ -3,7 +3,7 @@ import config
 
 class MLNGenerator():
     def _get_entity_str(self,obj):
-        return '(' + obj['sbj'] + ',' + obj['obj'] + ')'
+        return '(' + obj['sbj'] + '-@-' + obj['obj'] + ')'
 
     def _is_valid_morp(self,morp):
         morp_tag = morp.split('-@-')[1].strip()
@@ -208,11 +208,18 @@ class MLNGenerator():
         # Entit-Pair Mapping
         f_write = open(config.data_path+'entity_pair_matching_test.txt', 'w', encoding='utf-8')
         for key in entity_dict:
-            f_write.write(entity_dict[key] + '\t' + key + '\n')
+            sbj, obj = key[1:-1].split('-@-')
+            sbj = sbj.strip()
+            obj = obj.strip()
+            f_write.write(entity_dict[key] + '\t' + sbj + '\t' + obj + '\n')
         f_write.close()
 
         # Instance Mapping
         f_write = open(config.data_path+'instance_matching_test.txt', 'w', encoding='utf-8')
         for key in instance_dict:
-            f_write.write(instance_dict[key] + '\t' + key + '\n')
+            sbj,obj,sent = key.split('-@-')
+            sbj = sbj[1:].strip()
+            obj = obj[:-1].strip()
+            sent = sent[:-4].strip()
+            f_write.write(instance_dict[key] + '\t' + sbj + '\t' + obj + '\t' + sent + '\n')
         f_write.close()
