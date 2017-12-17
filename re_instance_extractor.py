@@ -22,8 +22,8 @@ class REInstanceExtractor():
                     continue
 
                 sent = data_obj['text']
-                sbj = data_obj['entities'][i]['text']
-                obj = data_obj['entities'][j]['text']
+                sbj = data_obj['entities'][i]['surface_form']
+                obj = data_obj['entities'][j]['surface_form']
                 sbj_byte_loc = data_obj['entities'][i]['start_offset']
                 obj_byte_loc = data_obj['entities'][j]['start_offset']
                 re_instance = feature_extractor.getFeature(sent, sbj, obj, sbj_byte_loc, obj_byte_loc, data_obj)
