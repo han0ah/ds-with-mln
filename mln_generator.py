@@ -206,13 +206,13 @@ class MLNGenerator():
         f_test.close()
 
         # Entit-Pair Mapping
-        f_write = open('entity_pair_matching_test.txt', 'w', encoding='utf-8')
+        f_write = open(config.data_path+'entity_pair_matching_test.txt', 'w', encoding='utf-8')
         for key in entity_dict:
             f_write.write(entity_dict[key] + '\t' + key + '\n')
         f_write.close()
 
         # Instance Mapping
-        f_write = open('instance_matching_test.txt', 'w', encoding='utf-8')
+        f_write = open(config.data_path+'instance_matching_test.txt', 'w', encoding='utf-8')
         for key in instance_dict:
             f_write.write(instance_dict[key] + '\t' + key + '\n')
         f_write.close()
