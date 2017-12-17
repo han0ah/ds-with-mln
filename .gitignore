@@ -5,4 +5,5 @@ __pycache__/
 config.py
 data/entity_pair_matching_test.txt
 data/instance_matching_test.txt
+data/re_test.result
 data/test.db
