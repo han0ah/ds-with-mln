@@ -3,3 +3,6 @@ __pycache__/
 *.pyc
 *.pyo
 config.py
+data/entity_pair_matching_test.txt
+data/instance_matching_test.txt
+data/test.db
