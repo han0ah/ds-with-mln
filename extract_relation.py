@@ -35,7 +35,6 @@ def write_markov_logic_network_data(re_instance_list):
 
 def run_alchemy_inference():
     # Alchemy를 통해 Markov Logic Network Inference를 한다.
-    'infer -ms -i re-learnt.mln -r re_train.result -e train.db -q Label,HasRel'
     bashCommand = "{} -ms -i {} -r {} -e {} -q Label,HasRel".format(config.alchemy_path+'infer',
                                                                     config.data_path+'re-learnt.mln',
                                                                     config.data_path+'re_test.result',
