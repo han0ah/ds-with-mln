@@ -3,7 +3,7 @@ import config
 import subprocess
 from re_instance_extractor import REInstanceExtractor
 from mln_generator import MLNGenerator
-
+from mln_result_extractor import MLNResultExtractor
 
 def read_input():
     f = open(config.data_path+'input', 'r', encoding='utf-8')
@@ -40,13 +40,28 @@ def run_alchemy_inference():
                                                                     config.data_path+'re_test.result',
                                                                     config.data_path+'test.db')
     result = subprocess.call(bashCommand.split())
-    print (result)
+
+
+def get_spo_result_list():
+    # MLN 결과 파일들로 부터 relation 목록(spo,relation,score)를 뽑아낸다.
+    return MLNResultExtractor().get_re_result()
+
+def write_output(spo_relation_result):
+    # output 파일을 출력한다
+    # sample : 애플_(기업)	foundedBy	스티브_워즈니악	.	0.992171806968	애플_(기업) 은 스티브_잡스 와 스티브_워즈니악 과 로널드_웨인 이 1976년에 설립한 컴퓨터 회사 이다.
+    f = open(config.data_path+'output','w',encoding='utf-8')
+    for result in spo_relation_result:
+        f.write(result['sbj']+'\t'+result['relation']+'\t'+result['obj']+'\t'+'.'+'\t'+str(result['score'])+'\t'+result['sent']+'\n')
+    f.close()
 
 def main():
     data_obj_list = read_input()
     re_instance_list = extract_re_instances(data_obj_list)
     write_markov_logic_network_data(re_instance_list)
     run_alchemy_inference()
+    spo_relation_result = get_spo_result_list()
+    write_output(spo_relation_result)
 
 if __name__ == '__main__':
     main()
+
