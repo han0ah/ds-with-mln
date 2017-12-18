@@ -1,3 +1,4 @@
+import sys
 import json
 import config
 import subprocess
@@ -62,6 +63,7 @@ def main():
         run_alchemy_inference()
         spo_relation_result = get_spo_result_list()
     except:
+        print ("ERROR : " + str(sys.exc_info()[0]))
         spo_relation_result = []
 
     write_output(spo_relation_result)
