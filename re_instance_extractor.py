@@ -1,4 +1,4 @@
-import json
+import config
 import data_util
 
 class REInstanceExtractor():
@@ -12,14 +12,19 @@ class REInstanceExtractor():
         data_obj = self._revise_entity_index(data_obj)
         data_obj = self._revise_etri_morp_index(data_obj)
 
-
-
         # 주어 sbj-obj 쌍별로 instance Feature 추출
         re_instance_list = []
         feature_extractor = FeatureExtractor()
         num_entity = len(data_obj['entities'])
-        i = self._get_sbj_entiy_num(data_obj)
-        if (i >= 0):
+
+        if ( config.entity_pair_select_option == "ALL" ):
+            i_range = [i for i in range(num_entity)]
+        else:
+            i_range = []
+            sbj_entity_num = self._get_sbj_entiy_num(data_obj)
+            if (sbj_entity_num >= 0):
+                i_range = [sbj_entity_num]
+        for i in i_range:
             for j in range(num_entity):
                 if i==j:
                     continue
