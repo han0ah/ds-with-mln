@@ -59,7 +59,7 @@ def main():
     input_name = 'input' if len(sys.argv) < 2 else str(sys.argv[1])
     output_name = 'output' if len(sys.argv) < 3 else str(sys.argv[2])
     refile_name = 're_test.result' if len(sys.argv) < 4 else str(sys.argv[3])
-    test_db_name = 'test.db' if len(sys.argv) < 5 else str(sys.argv[3])
+    test_db_name = 'test.db' if len(sys.argv) < 5 else str(sys.argv[4])
 
     try:
         data_obj_list = read_input(input_name)
