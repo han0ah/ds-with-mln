@@ -19,6 +19,7 @@ def main():
     in_name = 'input' + fidx
     out_name = 'output' + fidx
     re_name = 're_test' + fidx + ".result"
+    test_db_name = 'test' + fidx + ".db"
     idx_cnt = 0
     done_cnt = 0
     FNULL = open(os.devnull, 'w')
@@ -32,8 +33,9 @@ def main():
             copyfile(origin_fname, './data/'+in_name)
         else:
             continue
-        print('copy input done : ' + str(idx_cnt))
-        bashCommand = 'python3 extract_relation.py {} {} {}'.format(in_name,out_name,re_name)
+        print('%s copy input done : '%(fname) + str(idx_cnt))
+        bashCommand = 'python3 extract_relation.py {} {} {} {}'.format(in_name,out_name,re_name,test_db_name)
+        print (bashCommand)
         try:
             subprocess.call(bashCommand.split(), stdout=FNULL, stderr=subprocess.STDOUT)
         except:

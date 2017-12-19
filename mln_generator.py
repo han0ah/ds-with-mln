@@ -50,7 +50,7 @@ class MLNGenerator():
                 feature_set.add(morp)
         return  feature_set
 
-    def write_mln_data(self,data):
+    def write_mln_data(self,data,test_db_name):
         N = len(data)
         entity_dict = {}
         instance_dict = {}
@@ -95,7 +95,7 @@ class MLNGenerator():
             max_mutual[feature_id] = value
         f.close()
 
-        f_test = open(config.data_path+'test.db', 'w', encoding='utf-8')
+        f_test = open(config.data_path+test_db_name, 'w', encoding='utf-8')
         # Mention 출력
         index = 0
         mention_printed = [False for i in range(N + 1)]

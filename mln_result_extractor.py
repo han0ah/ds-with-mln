@@ -31,9 +31,9 @@ class MLNResultExtractor():
         f.close()
         return instance_rels, instance_high_rel
 
-    def _read_instance_mention(self):
+    def _read_instance_mention(self,test_db_name):
         mentions = {}
-        f = open(config.data_path+'test.db', 'r', encoding='utf-8')
+        f = open(config.data_path+test_db_name, 'r', encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) < 1):
@@ -139,9 +139,9 @@ class MLNResultExtractor():
 
         return result
 
-    def get_re_result(self, re_file_name):
+    def get_re_result(self, re_file_name, test_db_name):
         co_occur, relation_list = self._read_mln_result()
-        mentions = self._read_instance_mention()
+        mentions = self._read_instance_mention(test_db_name)
         instance_rels, instance_high_rel = self._read_mln_db(re_file_name)
         return self._get_spo_list(instance_high_rel)
 
