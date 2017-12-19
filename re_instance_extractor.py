@@ -43,7 +43,7 @@ class REInstanceExtractor():
         '''
         가주어가 있었으면 가주어에 대한 Entity를 추가한다.
         '''
-        if(not data_obj['isAdd']):
+        if(('isAdd' not in data_obj) or (not data_obj['isAdd'])):
             return data_obj
         start_offset = 0
         end_offset = data_obj['ori_text'].index('은')
