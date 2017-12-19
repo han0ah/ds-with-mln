@@ -1,14 +1,14 @@
 import config
 
 class MLNResultExtractor():
-    def _read_mln_db(self):
+    def _read_mln_db(self,re_file_name):
         '''
         DB 파일을 읽는다.
         '''
         instance_high_rel = {}
         instance_rels = {}
 
-        f = open(config.data_path+'re_test.result','r',encoding='utf-8')
+        f = open(config.data_path+re_file_name,'r',encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) < 1):
@@ -139,10 +139,10 @@ class MLNResultExtractor():
 
         return result
 
-    def get_re_result(self):
+    def get_re_result(self, re_file_name):
         co_occur, relation_list = self._read_mln_result()
         mentions = self._read_instance_mention()
-        instance_rels, instance_high_rel = self._read_mln_db()
+        instance_rels, instance_high_rel = self._read_mln_db(re_file_name)
         return self._get_spo_list(instance_high_rel)
 
 

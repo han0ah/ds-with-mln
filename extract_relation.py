@@ -34,18 +34,18 @@ def write_markov_logic_network_data(re_instance_list):
     # instance 정보들을 Markov Logic Network에 들어가는 evidence grounding들로 만든다.
     MLNGenerator().write_mln_data(re_instance_list)
 
-def run_alchemy_inference():
+def run_alchemy_inference(re_file_name):
     # Alchemy를 통해 Markov Logic Network Inference를 한다.
     bashCommand = "{} -ms -i {} -r {} -e {} -q Label,HasRel".format(config.alchemy_path+'infer',
                                                                     config.data_path+'re-learnt.mln',
-                                                                    config.data_path+'re_test.result',
+                                                                    config.data_path+re_file_name,
                                                                     config.data_path+'test.db')
     result = subprocess.call(bashCommand.split())
 
 
-def get_spo_result_list():
+def get_spo_result_list(re_file_name):
     # MLN 결과 파일들로 부터 relation 목록(spo,relation,score)를 뽑아낸다.
-    return MLNResultExtractor().get_re_result()
+    return MLNResultExtractor().get_re_result(re_file_name)
 
 def write_output(spo_relation_result, output_name):
     # output 파일을 출력한다
@@ -58,13 +58,14 @@ def write_output(spo_relation_result, output_name):
 def main():
     input_name = 'input' if len(sys.argv) < 2 else str(sys.argv[1])
     output_name = 'output' if len(sys.argv) < 3 else str(sys.argv[2])
+    refile_name = 're_test.result' if len(sys.argv) < 4 else str(sys.argv[3])
 
     try:
         data_obj_list = read_input(input_name)
         re_instance_list = extract_re_instances(data_obj_list)
         write_markov_logic_network_data(re_instance_list)
-        run_alchemy_inference()
-        spo_relation_result = get_spo_result_list()
+        run_alchemy_inference(refile_name)
+        spo_relation_result = get_spo_result_list(refile_name)
     except:
         print ("ERROR : " + str(sys.exc_info()[0]))
         spo_relation_result = []
