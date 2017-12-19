@@ -114,8 +114,8 @@ class MLNResultExtractor():
         f.close()
         return co_occur, relation_list
 
-    def _get_spo_list(self,instance_high_rel):
-        f = open(config.data_path+'instance_matching_test.txt','r',encoding='utf-8')
+    def _get_spo_list(self,instance_high_rel, ist_matching_name):
+        f = open(config.data_path+ist_matching_name,'r',encoding='utf-8')
         instance_dic = {}
         for line in f:
             if(len(line) < 2):
@@ -139,10 +139,10 @@ class MLNResultExtractor():
 
         return result
 
-    def get_re_result(self, re_file_name, test_db_name):
+    def get_re_result(self, re_file_name, test_db_name,ist_matching_name):
         co_occur, relation_list = self._read_mln_result()
         mentions = self._read_instance_mention(test_db_name)
         instance_rels, instance_high_rel = self._read_mln_db(re_file_name)
-        return self._get_spo_list(instance_high_rel)
+        return self._get_spo_list(instance_high_rel,ist_matching_name)
 
 

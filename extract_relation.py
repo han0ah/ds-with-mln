@@ -30,9 +30,9 @@ def extract_re_instances(data_obj_list):
         re_instance_list.extend(result)
     return re_instance_list
 
-def write_markov_logic_network_data(re_instance_list, test_db_name):
+def write_markov_logic_network_data(re_instance_list, test_db_name, ist_matching_name):
     # instance 정보들을 Markov Logic Network에 들어가는 evidence grounding들로 만든다.
-    MLNGenerator().write_mln_data(re_instance_list, test_db_name)
+    MLNGenerator().write_mln_data(re_instance_list, test_db_name, ist_matching_name)
 
 def run_alchemy_inference(re_file_name,test_db_name):
     # Alchemy를 통해 Markov Logic Network Inference를 한다.
@@ -43,9 +43,9 @@ def run_alchemy_inference(re_file_name,test_db_name):
     result = subprocess.call(bashCommand.split())
 
 
-def get_spo_result_list(re_file_name, test_db_name):
+def get_spo_result_list(re_file_name, test_db_name, ist_matching_name):
     # MLN 결과 파일들로 부터 relation 목록(spo,relation,score)를 뽑아낸다.
-    return MLNResultExtractor().get_re_result(re_file_name,test_db_name)
+    return MLNResultExtractor().get_re_result(re_file_name,test_db_name,ist_matching_name)
 
 def write_output(spo_relation_result, output_name):
     # output 파일을 출력한다
@@ -60,13 +60,14 @@ def main():
     output_name = 'output' if len(sys.argv) < 3 else str(sys.argv[2])
     refile_name = 're_test.result' if len(sys.argv) < 4 else str(sys.argv[3])
     test_db_name = 'test.db' if len(sys.argv) < 5 else str(sys.argv[4])
+    ist_matching_name = 'instance_matching_test.txt' if len(sys.argv) < 6 else str(sys.argv[5])
 
     try:
         data_obj_list = read_input(input_name)
         re_instance_list = extract_re_instances(data_obj_list)
-        write_markov_logic_network_data(re_instance_list, test_db_name)
+        write_markov_logic_network_data(re_instance_list, test_db_name, ist_matching_name)
         run_alchemy_inference(refile_name,test_db_name)
-        spo_relation_result = get_spo_result_list(refile_name, test_db_name)
+        spo_relation_result = get_spo_result_list(refile_name, test_db_name, ist_matching_name)
     except:
         print ("ERROR : " + str(sys.exc_info()[0]))
         spo_relation_result = []

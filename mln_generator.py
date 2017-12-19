@@ -50,7 +50,7 @@ class MLNGenerator():
                 feature_set.add(morp)
         return  feature_set
 
-    def write_mln_data(self,data,test_db_name):
+    def write_mln_data(self,data,test_db_name,ist_matching_name):
         N = len(data)
         entity_dict = {}
         instance_dict = {}
@@ -205,17 +205,8 @@ class MLNGenerator():
 
         f_test.close()
 
-        # Entit-Pair Mapping
-        f_write = open(config.data_path+'entity_pair_matching_test.txt', 'w', encoding='utf-8')
-        for key in entity_dict:
-            sbj, obj = key[1:-1].split('-@-')
-            sbj = sbj.strip()
-            obj = obj.strip()
-            f_write.write(entity_dict[key] + '\t' + sbj + '\t' + obj + '\n')
-        f_write.close()
-
         # Instance Mapping
-        f_write = open(config.data_path+'instance_matching_test.txt', 'w', encoding='utf-8')
+        f_write = open(config.data_path+ist_matching_name, 'w', encoding='utf-8')
         for key in instance_dict:
             sbj,obj,sent = key.split('-@-')
             sbj = sbj[1:].strip()

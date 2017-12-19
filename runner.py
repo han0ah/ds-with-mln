@@ -20,6 +20,7 @@ def main():
     out_name = 'output' + fidx
     re_name = 're_test' + fidx + ".result"
     test_db_name = 'test' + fidx + ".db"
+    ist_matching_name = 'instance_matching_test' + fidx + ".txt"
     idx_cnt = 0
     done_cnt = 0
     FNULL = open(os.devnull, 'w')
@@ -34,7 +35,7 @@ def main():
         else:
             continue
         print('%s copy input done : '%(fname) + str(idx_cnt))
-        bashCommand = 'python3 extract_relation.py {} {} {} {}'.format(in_name,out_name,re_name,test_db_name)
+        bashCommand = 'python3 extract_relation.py {} {} {} {} {}'.format(in_name,out_name,re_name,test_db_name,ist_matching_name)
         print (bashCommand)
         try:
             subprocess.call(bashCommand.split(), stdout=FNULL, stderr=subprocess.STDOUT)
