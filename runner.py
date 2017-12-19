@@ -25,8 +25,7 @@ def main():
     for fname in file_name_list:
         idx_cnt += 1
         elapsed_time = int(time.time() - st_time) / 60.0
-        if (idx_cnt % 5 == 0):
-            print( '%d processed %d done %.2f min elpased'%(idx_cnt, done_cnt, elapsed_time))
+        print( '%d processed %d done %.2f min elpased'%(idx_cnt-1, done_cnt, elapsed_time))
 
         origin_fname = './data/sample/dump_input/'+fname
         if os.path.isfile(origin_fname):
