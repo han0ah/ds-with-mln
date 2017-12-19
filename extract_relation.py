@@ -65,8 +65,8 @@ def main():
         data_obj_list = read_input(input_name)
         re_instance_list = extract_re_instances(data_obj_list)
         write_markov_logic_network_data(re_instance_list, test_db_name)
-        run_alchemy_inference(refile_name)
-        spo_relation_result = get_spo_result_list(refile_name,test_db_name)
+        run_alchemy_inference(refile_name,test_db_name)
+        spo_relation_result = get_spo_result_list(refile_name)
     except:
         print ("ERROR : " + str(sys.exc_info()[0]))
         spo_relation_result = []
