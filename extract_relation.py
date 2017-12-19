@@ -43,9 +43,9 @@ def run_alchemy_inference(re_file_name,test_db_name):
     result = subprocess.call(bashCommand.split())
 
 
-def get_spo_result_list(re_file_name):
+def get_spo_result_list(re_file_name, test_db_name):
     # MLN 결과 파일들로 부터 relation 목록(spo,relation,score)를 뽑아낸다.
-    return MLNResultExtractor().get_re_result(re_file_name)
+    return MLNResultExtractor().get_re_result(re_file_name,test_db_name)
 
 def write_output(spo_relation_result, output_name):
     # output 파일을 출력한다
@@ -66,7 +66,7 @@ def main():
         re_instance_list = extract_re_instances(data_obj_list)
         write_markov_logic_network_data(re_instance_list, test_db_name)
         run_alchemy_inference(refile_name,test_db_name)
-        spo_relation_result = get_spo_result_list(refile_name)
+        spo_relation_result = get_spo_result_list(refile_name, test_db_name)
     except:
         print ("ERROR : " + str(sys.exc_info()[0]))
         spo_relation_result = []
