@@ -98,6 +98,9 @@ class MLNGenerator():
         f_test = open(config.data_path+test_db_name, 'w', encoding='utf-8')
         # Mention 출력
         index = 0
+        hasrel_set = set()
+        answer_hasrel_set = set()
+        answer_set2 = set()
         mention_printed = [False for i in range(N + 1)]
         for obj in data:
             index += 1
@@ -108,6 +111,8 @@ class MLNGenerator():
                 f_out = f_test
                 f_out.write('Mention(' + instance_str + ',' + entity_str + ')' + '\n')
                 mention_printed[int(instance_str[3:])] = True
+            answer_hasrel_set.add(entity_str + '\t' + 'R_' + obj['relation'])
+            answer_set2.add(instance_str + '\t' + 'R_' + obj['relation'])
 
         # HasFea 출력
         index = 0
@@ -213,4 +218,16 @@ class MLNGenerator():
             obj = obj[:-1].strip()
             sent = sent.strip().split('___')[0].strip()
             f_write.write(instance_dict[key] + '\t' + sbj + '\t' + obj + '\t' + sent + '\n')
+        f_write.close()
+
+        # Answer Set
+        f_write = open(config.data_path + 'answer_set.txt', 'w', encoding='utf-8')
+        for value in answer_hasrel_set:
+            f_write.write(value + '\n')
+        f_write.close()
+
+        # Answer Set2
+        f_write = open(config.data_path + 'answer_set2.txt', 'w', encoding='utf-8')
+        for value in answer_set2:
+            f_write.write(value + '\n')
         f_write.close()

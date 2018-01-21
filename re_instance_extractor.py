@@ -3,6 +3,48 @@ import data_util
 
 class REInstanceExtractor():
 
+    def extract_re_instance_for_experiment(self, file_name):
+        re_instance_list = []
+        feature_extractor = FeatureExtractor()
+
+        f = open(file_name, 'r', encoding='utf-8')
+        for line in f:
+            if (len(line) < 2):
+                continue
+            sbj,obj,relation,template_sent = line.split('\t')
+
+            sent = template_sent.replace(' << _sbj_ >> ', sbj)
+            sent = sent.replace(' << _obj_ >> ', obj)
+            sent = sent.strip()
+            template_sent = template_sent.strip()
+
+            sbj_loc = sent.find(sbj)
+            obj_loc = sent.find(obj)
+
+            byte_count = 0
+            char_count = 0
+            sbj_byte_loc = obj_byte_loc = 0
+            for char in sent:
+                if (char_count == sbj_loc):
+                    sbj_byte_loc = byte_count
+                if (char_count == obj_loc):
+                    obj_byte_loc = byte_count
+
+                char_count += 1
+                byte_count += data_util.get_text_length_in_byte(char)
+
+            nlp_result = data_util.get_nlp_parse_result(sent)
+            if (nlp_result != None):
+                nlp_result = nlp_result['sentence'][0]
+
+            re_instance = feature_extractor.getFeature(sent,sbj,obj,sbj_byte_loc,obj_byte_loc,nlp_result)
+            re_instance['template_sent'] = template_sent
+            re_instance['relation'] = relation.strip()
+            re_instance_list.append(re_instance)
+        f.close()
+        return re_instance_list
+
+
     def extract_re_instance(self,data_obj):
         '''
         입력 데이터로 부터 Sbj-Obj Entity Pair / Sentence / Feature 값을 가지는 Instance를 뽑아낸다. 
@@ -112,10 +154,22 @@ class REInstanceExtractor():
 class FeatureExtractor():
     ''' Mintz et al(2009)에 나온 방식으로 Relation Extraction을 위한 문장의 feature를 추출한다. '''
     def getFeature(self, sent, sbj,obj, sbj_byte_loc, obj_byte_loc, etri_result=None):
+        dummy_result =  {
+            'sent' : sent,
+            'sbj' : sbj,
+            'obj' : obj,
+            'sbj_ne' : 'NONE',
+            'obj_ne' : 'NONE',
+            'dependency' : [],
+            'morp_left'  : [],
+            'morp_middle' : [],
+            'morp_right' : [],
+            'dependency_morp' : []
+        }
 
         nlp_result = etri_result
         if nlp_result == None:
-            return {}
+            return dummy_result
 
         sbj_id = obj_id = -1
         sbj_st = sbj_en = -1
@@ -133,7 +187,7 @@ class FeatureExtractor():
                 obj_en = word['end']
                 obj_id = word['id']
         if (sbj_id == -1 or obj_id == -1):
-            return [], 'NONE', 'NONE', [], [], [], [], [], []
+            return dummy_result
 
         if (sbj_id > obj_id):
             sbj_st, obj_st = obj_st, sbj_st
