@@ -123,25 +123,16 @@ class ExtractRanker():
         return co_occur, relation_list
 
 
-    def calc_precision_recall(co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set):
+    def calc_precision_recall(self,co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set):
         rel_dic = {}
         index = 0
 
-        instance_dic = {}
-        f_read = open(config.data_path + 'instance_matching.txt_test','r',encoding='utf-8')
-        for line in f_read:
-            instance, text = line.split('\t')
-            instance = instance.strip()
-            text = text.split('___')[0]
-            text = text.strip()
-            instance_dic[instance] = text
-        f_read.close()
-
-        f = open(config.data_path + 'predict_gold.txt','w',encoding='utf-8')
         true_val = []
         predict_val = []
         rel_cnt = {}
+        rel_data = {}
         for relation in relation_list:
+            rel_data[relation] = {'total' : 0, 'predict':0, 'right':0}
             rel_dic[relation] = index
             rel_cnt[relation] = 0
             index += 1
@@ -158,29 +149,37 @@ class ExtractRanker():
             system_rel = instance_high_rel[instance][0]
             system_conf = instance_high_rel[instance][1]
 
-            f.write(instance_dic[instance]+'\t'+gold_rel+'\t'+system_rel+'\t'+str(system_conf)+'\t'+instance+'\n')
-
             true_val.append(rel_dic[gold_rel])
             rel_cnt[gold_rel] += 1
             predict_val.append(rel_dic[system_rel])
 
+            rel_data[gold_rel]['total'] += 1
+            if (system_rel == gold_rel):
+                rel_data[gold_rel]['right'] += 1
+            rel_data[system_rel]['predict'] += 1
+
             index += 1
-        f.close()
 
-        print("Not In Count : " + str(notin_count))
-
-        for rel in relation_list:
-            print(rel + ' ' + str(rel_cnt[rel]))
-
-        f1 = f1_score(true_val, predict_val, average=None)
-        prec = precision_score(true_val, predict_val, average=None)
-        recall = recall_score(true_val, predict_val, average=None)
-
-        f1_avg = f1_score(true_val, predict_val, average='micro')
-        prec_avg = precision_score(true_val, predict_val, average='micro')
-        recall_avg = recall_score(true_val, predict_val, average='micro')
-
-        return prec,recall,f1,prec_avg,recall_avg,f1_avg,rel_cnt
+        f_write = open(config.data_path + 'prec_recall_per_prop.txt', 'w', encoding='utf-8')
+        total = 0
+        accurate = 0
+        for rel in rel_data:
+            if (rel_data[rel]['total'] == 0):
+                prec = 0.0
+                recall = 0.0
+            else:
+                prec = (rel_data[rel]['right'] / rel_data[rel]['predict']) if rel_data[rel]['predict'] > 0 else 0.0
+                recall = rel_data[rel]['right'] / rel_data[rel]['total']
+                total += rel_data[rel]['total']
+                accurate += rel_data[rel]['right']
+            if ((prec + recall) < 0.0000001):
+                f1 = 0.0
+            else:
+                f1 = 2*(prec*recall) / (prec+recall)
+            f_write.write(
+                '%s\t%.3f\t%.3f\t%.3f\t%d\n' % (rel[2:], prec, recall, f1, rel_cnt[rel]))
+        f_write.write('%s\t%.3f\t%.3f\t%.3f\n' % ('average', (accurate/total), (accurate/total), (accurate/total)))
+        f_write.close()
 
     def read_answer(self):
         answer_set = []
@@ -200,12 +199,4 @@ class ExtractRanker():
         mentions = self.read_instance_mention()
         instance_rels, instance_high_rel = self.read_mln_db()
         answer_set = self.read_answer()
-        f_write = open(config.data_path + 'prec_recall_per_prop.txt','w',encoding='utf-8')
-        precision,recall,f1, prec_avg,recall_avg,f1_avg,rel_cnt = self.calc_precision_recall(co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set)
-
-        index = 0
-        for rel in relation_list:
-            f_write.write('%s\t%.3f\t%.3f\t%.3f\t%d\n'%(rel[2:], precision[index],recall[index], f1[index],rel_cnt[rel]))
-            index += 1
-        f_write.write('%s\t%.3f\t%.3f\t%.3f\n' % ('average', prec_avg, recall_avg, f1_avg))
-        f_write.close()
+        self.calc_precision_recall(co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set)
