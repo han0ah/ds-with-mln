@@ -65,8 +65,10 @@ def main():
         re_instance_list = extract_re_instances(input_name)
         write_markov_logic_network_data(re_instance_list, test_db_name, ist_matching_name)
         run_alchemy_inference(refile_name,test_db_name)
+        print ('Alchemy : MLN inference finished')
         extract_ranker = ExtractRanker()
         extract_ranker.extract_rank()
+        print('Test Finished')
     except:
         print ("ERROR : " + str(sys.exc_info()[0]))
 

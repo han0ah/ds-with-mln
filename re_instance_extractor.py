@@ -6,7 +6,7 @@ class REInstanceExtractor():
     def extract_re_instance_for_experiment(self, file_name):
         re_instance_list = []
         feature_extractor = FeatureExtractor()
-
+        done_count = 0
         f = open(file_name, 'r', encoding='utf-8')
         for line in f:
             if (len(line) < 2):
@@ -41,6 +41,9 @@ class REInstanceExtractor():
             re_instance['template_sent'] = template_sent
             re_instance['relation'] = relation.strip()
             re_instance_list.append(re_instance)
+            done_count += 1
+            if (done_count % 50 == 0):
+                print('%d data parsing finished'%(done_count))
         f.close()
         return re_instance_list
 
