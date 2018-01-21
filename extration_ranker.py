@@ -10,7 +10,7 @@ class ExtractRanker():
         instance_high_rel = {}
         instance_rels = {}
 
-        f = open('re_test.result','r',encoding='utf-8')
+        f = open(config.data_path + 're_test.result','r',encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) < 1):
@@ -35,7 +35,7 @@ class ExtractRanker():
 
     def read_instance_mention(self):
         mentions = {}
-        f = open('test.db', 'r', encoding='utf-8')
+        f = open(config.data_path + 'test.db', 'r', encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) < 1):
@@ -58,7 +58,7 @@ class ExtractRanker():
         co_occur = {}
         fea_list = {}
         relation_list = []
-        f = open('relation_list.txt','r',encoding='utf-8')
+        f = open(config.data_path + 'relation_list.txt','r',encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) > 1):
@@ -69,7 +69,7 @@ class ExtractRanker():
         f.close()
 
         feature_map = {}
-        f = open('feature_matching.txt', 'r', encoding='utf-8')
+        f = open(config.data_path + 'feature_matching.txt', 'r', encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) > 1):
@@ -80,7 +80,7 @@ class ExtractRanker():
         f.close()
 
         arg_fea_list = []
-        f = open('re-learnt.mln','r',encoding='utf-8')
+        f = open(config.data_path + 're-learnt.mln','r',encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) < 1 or line.startswith('//')):
@@ -128,7 +128,7 @@ class ExtractRanker():
         index = 0
 
         instance_dic = {}
-        f_read = open('instance_matching.txt_test','r',encoding='utf-8')
+        f_read = open(config.data_path + 'instance_matching.txt_test','r',encoding='utf-8')
         for line in f_read:
             instance, text = line.split('\t')
             instance = instance.strip()
@@ -137,7 +137,7 @@ class ExtractRanker():
             instance_dic[instance] = text
         f_read.close()
 
-        f = open('predict_gold.txt','w',encoding='utf-8')
+        f = open(config.data_path + 'predict_gold.txt','w',encoding='utf-8')
         true_val = []
         predict_val = []
         rel_cnt = {}
@@ -184,7 +184,7 @@ class ExtractRanker():
 
     def read_answer(self):
         answer_set = []
-        f = open('answer_set2.txt', 'r', encoding='utf-8')
+        f = open(config.data_path + 'answer_set2.txt', 'r', encoding='utf-8')
         for line in f:
             line = line.strip()
             if len(line) < 1:
