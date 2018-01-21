@@ -35,9 +35,10 @@ def write_markov_logic_network_data(re_instance_list, train_db_name):
 
 def run_alchemy_weight_learning(re_file_name,train_db_name):
     # Alchemy를 통해 Markov Logic Network Inference를 한다.
-    bashCommand = "{} -d -i re.mln -o {} -t {} -ne Label,HasRel -dNumIter 15".format(config.alchemy_path+'learnwts',
-                                                                                     config.data_path + 're-learnt.mln',
-                                                                                     config.data_path + re_file_name)
+    bashCommand = "{} -d -i {} -o {} -t {} -ne Label,HasRel -dNumIter 15".format(config.alchemy_path+'learnwts',
+                                                                                 config.data_path+'re.mln',
+                                                                                 config.data_path + 're-learnt.mln',
+                                                                                 config.data_path + re_file_name)
     result = subprocess.call(bashCommand.split())
 
 
