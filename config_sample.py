@@ -1,5 +1,5 @@
 # data 폴더
-data_path = '/test/wjd1004109/PL-Web-Demo/MLN/data/'
+data_path = './data/'
 
 # alchemy 경로
 alchemy_path = '/home/han0ah/alchemy/bin/'

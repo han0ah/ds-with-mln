@@ -56,7 +56,7 @@ class MLNResultExtractor():
         co_occur = {}
         fea_list = {}
         relation_list = []
-        f = open(config.data_path+'relation_list.txt','r',encoding='utf-8')
+        f = open(config.data_path+'pre_trained/relation_list.txt','r',encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) > 1):
@@ -67,7 +67,7 @@ class MLNResultExtractor():
         f.close()
 
         feature_map = {}
-        f = open(config.data_path+'feature_matching.txt', 'r', encoding='utf-8')
+        f = open(config.data_path+'pre_trained/feature_matching.txt', 'r', encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) > 1):
@@ -78,7 +78,7 @@ class MLNResultExtractor():
         f.close()
 
         arg_fea_list = []
-        f = open(config.data_path+'re-learnt.mln','r',encoding='utf-8')
+        f = open(config.data_path+'pre_trained/re-learnt.mln','r',encoding='utf-8')
         for line in f:
             line = line.strip()
             if (len(line) < 1 or line.startswith('//')):

@@ -126,17 +126,32 @@ class ExtractRanker():
     def calc_precision_recall(self,co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set):
         rel_dic = {}
         index = 0
-
         true_val = []
         predict_val = []
         rel_cnt = {}
         rel_data = {}
+        instance_dic = {}
+
+        f = open(config.data_path + 'instance_matching_test.txt','r',encoding='utf-8')
+        for line in f:
+            if len(line) < 2:
+                continue
+            items = line.strip().split('\t')
+            id = items[0].strip()
+            sbj = items[1].strip()
+            obj = items[2].strip()
+            sent = items[3].strip()
+            sent = sent.replace(sbj,' << _sbj_ >> ').replace(obj, ' << _obj_ >> ')
+            instance_dic[id] = {'sbj':sbj, 'obj':obj, 'sent':sent}
+        f.close()
+
         for relation in relation_list:
             rel_data[relation] = {'total' : 0, 'predict':0, 'right':0}
             rel_dic[relation] = index
             rel_cnt[relation] = 0
             index += 1
 
+        f_write = open(config.data_path + 'prediction_result.txt', 'w', encoding='utf-8')
         index = 0
         notin_count = 0
         for answer in answer_set:
@@ -149,6 +164,11 @@ class ExtractRanker():
             system_rel = instance_high_rel[instance][0]
             system_conf = instance_high_rel[instance][1]
 
+            sbj = instance_dic[instance]['sbj']
+            obj = instance_dic[instance]['obj']
+            sent = instance_dic[instance]['sent']
+            f_write.write('%s\t%s\t%s\t%s\t%.4f\t%s\n'%(sbj,obj,gold_rel[2:],system_rel[2:],system_conf,sent))
+
             true_val.append(rel_dic[gold_rel])
             rel_cnt[gold_rel] += 1
             predict_val.append(rel_dic[system_rel])
@@ -159,6 +179,7 @@ class ExtractRanker():
             rel_data[system_rel]['predict'] += 1
 
             index += 1
+        f_write.close()
 
         f_write = open(config.data_path + 'prec_recall_per_prop.txt', 'w', encoding='utf-8')
         total = 0
