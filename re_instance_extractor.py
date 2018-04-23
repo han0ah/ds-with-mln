@@ -12,7 +12,8 @@ class REInstanceExtractor():
         for line in f:
             if (len(line) < 2):
                 continue
-            sbj,obj,relation,template_sent = line.split('\t')
+            split_items = line.split('\t')
+            sbj,obj,relation,template_sent = split_items[0],split_items[1],split_items[2],split_items[3]
             prev_sbj_loc = template_sent.find('<< _sbj')
             prev_obj_loc = template_sent.find('<< _obj')
             sent = template_sent.replace(' << _sbj_ >> ', sbj)
