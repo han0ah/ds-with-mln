@@ -46,16 +46,25 @@ def get_spo_result_list(re_file_name, test_db_name, ist_matching_name):
     # MLN 결과 파일들로 부터 relation 목록(spo,relation,score)를 뽑아낸다.
     return MLNResultExtractor().get_re_result(re_file_name,test_db_name,ist_matching_name)
 
+def write_output(spo_relation_result, output_name):
+    # output 파일을 출력한다
+    # sample : 애플_(기업)	foundedBy	스티브_워즈니악	.	0.992171806968	애플_(기업) 은 스티브_잡스 와 스티브_워즈니악 과 로널드_웨인 이 1976년에 설립한 컴퓨터 회사 이다.
+    f = open(config.data_path+output_name,'w',encoding='utf-8')
+    for result in spo_relation_result:
+        f.write(result['sbj']+'\t'+result['relation']+'\t'+result['obj']+'\t'+'.'+'\t'+str(result['score'])+'\t'+result['sent']+'\n')
+    f.close()
+
 def main():
     input_name = 'test_data' if len(sys.argv) < 2 else str(sys.argv[1])
+    output_name = 'result' if len(sys.argv) < 3 else str(sys.argv[2])
     refile_name = 're_test.result' if len(sys.argv) < 4 else str(sys.argv[3])
     test_db_name = 'test.db' if len(sys.argv) < 5 else str(sys.argv[4])
     ist_matching_name = 'instance_matching_test.txt' if len(sys.argv) < 6 else str(sys.argv[5])
 
     try:
         re_instance_list = extract_re_instances(input_name)
-        #write_markov_logic_network_data(re_instance_list, test_db_name, ist_matching_name)
-        #run_alchemy_inference(refile_name,test_db_name)
+        write_markov_logic_network_data(re_instance_list, test_db_name, ist_matching_name)
+        run_alchemy_inference(refile_name,test_db_name)
         print ('Alchemy : MLN inference finished')
         extract_ranker = ExtractRanker()
         extract_ranker.extract_rank()

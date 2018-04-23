@@ -12,6 +12,7 @@ data/sample/
 data/answer_set.txt
 data/answer_set2.txt
 data/prec_recall_per_prop.txt
+data/prediction_result.txt
 data/feature_matching.txt
 data/feature_vector_weight.txt
 data/relation_list.txt

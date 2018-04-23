@@ -1,4 +1,0 @@
-R_country
-R_starring
-R_occupation
-R_channel

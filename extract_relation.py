@@ -77,9 +77,3 @@ def main():
 if __name__ == '__main__':
     main()
 
-'''
-pre-trained/feature_matching
-pre-trained/feature_vector_weight.txt
-pre-trained/re-learnt.mln
-pre-trained/relation_list.txt
-'''

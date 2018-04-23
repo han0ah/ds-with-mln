@@ -32,7 +32,7 @@ def extract_re_instances(data_obj_list):
 
 def write_markov_logic_network_data(re_instance_list, test_db_name, ist_matching_name):
     # instance 정보들을 Markov Logic Network에 들어가는 evidence grounding들로 만든다.
-    MLNGenerator().write_mln_data(re_instance_list, test_db_name, ist_matching_name)
+    MLNGenerator().write_mln_data_for_raw(re_instance_list, test_db_name, ist_matching_name)
 
 def run_alchemy_inference(re_file_name,test_db_name):
     # Alchemy를 통해 Markov Logic Network Inference를 한다.
@@ -52,7 +52,7 @@ def write_output(spo_relation_result, output_name):
     # sample : 애플_(기업)	foundedBy	스티브_워즈니악	.	0.992171806968	애플_(기업) 은 스티브_잡스 와 스티브_워즈니악 과 로널드_웨인 이 1976년에 설립한 컴퓨터 회사 이다.
     f = open(config.data_path+output_name,'w',encoding='utf-8')
     for result in spo_relation_result:
-        f.write(result['sbj']+'\t'+result['relation']+'\t'+result['obj']+'\t'+'.'+'\t'+str(result['score'])+'\t'+result['sent']+'\n')
+        f.write(result['sbj']+'\t'+result['relation'][2:]+'\t'+result['obj']+'\t'+'.'+'\t'+str(result['score'])+'\t'+result['sent']+'\n')
     f.close()
 
 def main():
