@@ -1,5 +1,6 @@
 import config
 import data_util
+import re
 
 class REInstanceExtractor():
 
@@ -12,14 +13,31 @@ class REInstanceExtractor():
             if (len(line) < 2):
                 continue
             sbj,obj,relation,template_sent = line.split('\t')
-
+            prev_sbj_loc = template_sent.find('<< _sbj')
+            prev_obj_loc = template_sent.find('<< _obj')
             sent = template_sent.replace(' << _sbj_ >> ', sbj)
             sent = sent.replace(' << _obj_ >> ', obj)
             sent = sent.strip()
             template_sent = template_sent.strip()
 
-            sbj_loc = sent.find(sbj)
-            obj_loc = sent.find(obj)
+            sbj_loc_list = [m.start() for m in re.finditer(sbj, sent)]
+            obj_loc_list = [m.start() for m in re.finditer(obj, sent)]
+
+            sbj_loc = -1
+            obj_loc = -1
+            min_diff = 10000
+            for loc in sbj_loc_list:
+                diff = abs(loc - prev_sbj_loc)
+                if (diff < min_diff):
+                    sbj_loc = loc
+                    min_diff = diff
+
+            min_diff = 10000
+            for loc in obj_loc_list:
+                diff = abs(loc - prev_obj_loc)
+                if (diff < min_diff):
+                    obj_loc = loc
+                    min_diff = diff
 
             byte_count = 0
             char_count = 0
@@ -38,7 +56,6 @@ class REInstanceExtractor():
                 nlp_result = nlp_result['sentence'][0]
 
             re_instance = feature_extractor.getFeature(sent,sbj,obj,sbj_byte_loc,obj_byte_loc,nlp_result)
-            re_instance['template_sent'] = template_sent
             re_instance['relation'] = relation.strip()
             re_instance_list.append(re_instance)
             done_count += 1
@@ -155,68 +172,96 @@ class REInstanceExtractor():
 
 
 class FeatureExtractor():
+    def _is_valid_morp(self, morp_tag):
+        if (morp_tag.startswith('N') or morp_tag == 'VV' or morp_tag == 'VA'):
+            return True
+        return False
+
+    def _get_morp_items(self, i, nlp_result, use_vcp=False):
+        morp_list = []
+        for morp_item in nlp_result['morp_eval'][i]['result'].split('+'):
+            items = morp_item.split('/')
+            if (len(items) != 2):
+                continue
+            lemma = items[0]
+            morp_type = items[1]
+            if (self._is_valid_morp(morp_type)):
+                morp_list.append(lemma + '-@-' + morp_type)
+            elif (morp_type == 'VCP' and use_vcp and len(morp_list) > 0):
+                morp_list[-1] += ('이다-@-VCP')
+
+        return morp_list
+
+    def _removeParenthesis(self, sent):
+        remove_keyword = []
+        open_count = 0
+        st = 0
+        new_sent = sent
+        index = 0
+        for char in new_sent:
+            if (char == '('):
+                open_count += 1
+                if open_count == 1:
+                    st = index
+            elif (char == ')'):
+                open_count -= 1
+                if open_count == 0:
+                    substr = sent[st:index + 1]
+                    if (not (('<< _sbj_ >>' in substr) or ('<< _obj_ >>' in substr))):
+                        if (st > 0 and sent[st - 1:st] == ' '):
+                            substr = ' ' + substr
+                        remove_keyword.append(substr)
+            index += 1
+        for item in remove_keyword:
+            sent = sent.replace(item, '')
+
+        if ('<< _sbj_ >> ' not in sent):
+            sent = sent.replace('<< _sbj_ >>', '<< _sbj_ >> ')
+        if ('<< _obj_ >> ' not in sent):
+            sent = sent.replace('<< _obj_ >>', '<< _obj_ >> ')
+        return sent
+
     ''' Mintz et al(2009)에 나온 방식으로 Relation Extraction을 위한 문장의 feature를 추출한다. '''
     def getFeature(self, sent, sbj,obj, sbj_byte_loc, obj_byte_loc, etri_result=None):
         dummy_result =  {
             'sent' : sent,
+            'origin_sent':sent,
+            'template_sent':sent,
             'sbj' : sbj,
             'obj' : obj,
             'sbj_ne' : 'NONE',
             'obj_ne' : 'NONE',
-            'dependency' : [],
-            'morp_left'  : [],
-            'morp_middle' : [],
-            'morp_right' : [],
-            'dependency_morp' : []
+            'sbj_label': '',
+            'obj_label': '',
+            'sbj_josa' : '',
+            'obj_josa' : '',
+            'dependency': [],
+            'dependency_morp': [],
+            'arg1_mod': [],
+            'arg2_mod': [],
+            'context_lemma': []
         }
+        origin_sent = sent
+        sent = self._removeParenthesis(sent)
+        new_template_sent = sent
+        sent = sent.replace(' << _sbj_ >> ', sbj)
+        sent = sent.replace(' << _obj_ >> ', obj)
 
         nlp_result = etri_result
         if nlp_result == None:
             return dummy_result
 
         sbj_id = obj_id = -1
-        sbj_st = sbj_en = -1
-        obj_st = obj_en = -1
         morp = nlp_result['morp']
         for word in nlp_result['word']:
             word_st = morp[word['begin']]['position']
-            word_ed = morp[word['end']+1]['position'] - 1 if word['end']+1 < len(morp) else 10000
+            word_ed = morp[word['end'] + 1]['position'] - 1 if word['end'] + 1 < len(morp) else 10000
             if sbj_byte_loc >= word_st and sbj_byte_loc <= word_ed:
-                sbj_st = word['begin']
-                sbj_en = word['end']
                 sbj_id = word['id']
             if obj_byte_loc >= word_st and obj_byte_loc <= word_ed:
-                obj_st = word['begin']
-                obj_en = word['end']
                 obj_id = word['id']
         if (sbj_id == -1 or obj_id == -1):
             return dummy_result
-
-        if (sbj_id > obj_id):
-            sbj_st, obj_st = obj_st, sbj_st
-            sbj_en, obj_en = obj_en, sbj_en
-
-        morp_left = []
-        morp_middle = []
-        morp_right = []
-
-        count = 0
-        for i in reversed(range(0,sbj_st)):
-            count += 1
-            if (count > 8):
-                break
-            morp_left.append(morp[i]['lemma'] + '-@-' + morp[i]['type'])
-        morp_left.reverse()
-
-        count = 0
-        for i in range(obj_en+1,len(morp)):
-            count += 1
-            if (count > 8):
-                break
-            morp_right.append(morp[i]['lemma'] + '-@-' + morp[i]['type'])
-
-        for i in range(sbj_en+1,obj_st):
-            morp_middle.append(morp[i]['lemma'] + '-@-' + morp[i]['type'])
 
         dependency = nlp_result['dependency']
         N = len(dependency)
@@ -232,7 +277,7 @@ class FeatureExtractor():
             graph_label[item['head']][item['id']] = item['label']
 
         check_visit = [0 for _ in range(N)]
-        queue = [(sbj_id,-1)]
+        queue = [(sbj_id, -1)]
         check_visit[sbj_id] = 1
         now = en = 0
         obj_found = False
@@ -240,7 +285,7 @@ class FeatureExtractor():
             curr_id = queue[now][0]
             for i in range(N):
                 if (graph[curr_id][i] > 0 and check_visit[i] == 0):
-                    queue.append((i,now))
+                    queue.append((i, now))
                     check_visit[i] = 1
                     en += 1
                     if (i == obj_id):
@@ -249,11 +294,9 @@ class FeatureExtractor():
             if (obj_found):
                 break
             now += 1
-
         now = en
         dependency_path = []
         path = [queue[now][0]]
-
         while True:
             trace = queue[now][1]
             prev_id = queue[trace][0]
@@ -263,18 +306,61 @@ class FeatureExtractor():
             now = trace
         path.reverse()
 
+        for item in dependency:
+            item['state_label'] = ''
+        for i in path:
+            dependency[i]['state_label'] = 'dependency'
+
+        dependency[path[0]]['state_label'] = 'entity'
+        dependency[path[-1]]['state_label'] = 'entity'
+
+        arg1_mod = []
+        arg2_mod = []
+
+        for i in reversed(range(0, path[0])):
+            if ((not dependency[i]['label'].endswith('CNJ')) and dependency[i]['state_label'] != 'entity' and
+                        dependency[i]['head'] == path[0]):
+                arg1_mod = self._get_morp_items(i, nlp_result)
+                dependency[i]['state_label'] = 'arg1_mod'
+                break
+
+        for i in reversed(range(0, path[-1])):
+            if ((not dependency[i]['label'].endswith('CNJ')) and dependency[i]['state_label'] != 'entity' and
+                        dependency[i]['head'] == path[-1]):
+                arg2_mod = self._get_morp_items(i, nlp_result)
+                dependency[i]['state_label'] = 'arg2_mod'
+                break
+
+        context_lemma = []
+        left_limit = min(path[0], path[-1]) - 2 if (min(path[0], path[-1])) > 3 else 0
+        right_limit = max(path[0], path[-1]) + 2 + 1
+        if (right_limit >= len(dependency)):
+            right_limit = len(dependency)
+        for i in range(left_limit, right_limit):
+            if (dependency[i]['state_label'] == ''):
+                context_lemma.extend(self._get_morp_items(i, nlp_result))
+
         dependency_path_morp = []
         words = nlp_result['word']
-        for i in range(len(path)-1):
-            direction = 'down' if graph[path[i]][path[i+1]] == 2 else 'up'
-            dependency_path.append(direction + '||' + graph_label[path[i]][path[i+1]])
-            if (i < len(path)-2):
-                dependency_path.append(words[path[i+1]]['text'])
-                begin = words[path[i+1]]['begin']
-                end = words[path[i+1]]['end']
-                for j in range(begin, end+1):
-                    dependency_path_morp.append(morp[j]['lemma'] + '-@-' + morp[j]['type'])
+        sbj_label = dependency[path[0]]['label']
+        obj_label = dependency[path[-1]]['label']
+        sbj_josa = ''
+        obj_josa = ''
+        for morp_num in range(nlp_result['word'][path[0]]['begin'], nlp_result['word'][path[0]]['end'] + 1):
+            if morp[morp_num]['type'].startswith('J'):
+                sbj_josa = morp[morp_num]['lemma']
 
+        for morp_num in range(nlp_result['word'][path[-1]]['begin'], nlp_result['word'][path[-1]]['end'] + 1):
+            if morp[morp_num]['type'].startswith('J'):
+                obj_josa = morp[morp_num]['lemma']
+
+        for i in range(len(path) - 1):
+            direction = 'down' if graph[path[i]][path[i + 1]] == 2 else 'up'
+            dependency_path.append(direction + '||')
+            if (i < len(path) - 2):
+                dependency_path[-1] = direction + '||' + dependency[path[i + 1]]['label']
+                dependency_path.append(words[path[i + 1]]['text'])
+                dependency_path_morp.extend(self._get_morp_items(path[i + 1], nlp_result))
 
         morp = nlp_result['morp']
         sbj_NE = obj_NE = 'NONE'
@@ -287,16 +373,22 @@ class FeatureExtractor():
                 obj_NE = word['type']
 
         result = {
-            'sent' : sent,
-            'sbj' : sbj,
-            'obj' : obj,
-            'sbj_ne' : sbj_NE,
-            'obj_ne' : obj_NE,
-            'dependency' : dependency_path,
-            'morp_left'  : morp_left,
-            'morp_middle' : morp_middle,
-            'morp_right' : morp_right,
-            'dependency_morp' : dependency_path_morp
+            'sent': sent,
+            'origin_sent': origin_sent,
+            'template_sent': new_template_sent,
+            'sbj': sbj,
+            'obj': obj,
+            'sbj_ne': sbj_NE,
+            'obj_ne': obj_NE,
+            'sbj_label': sbj_label,
+            'obj_label': obj_label,
+            'sbj_josa': sbj_josa,
+            'obj_josa': obj_josa,
+            'dependency': dependency_path,
+            'dependency_morp': dependency_path_morp,
+            'arg1_mod': arg1_mod,
+            'arg2_mod': arg2_mod,
+            'context_lemma': context_lemma
         }
         return result
 
