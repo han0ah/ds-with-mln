@@ -135,7 +135,8 @@ class ExtractRanker():
                     extract_set.add(pair + '-@-' + relation)
 
         intersection_set = answer_set.intersection(extract_set)
-        precision = len(intersection_set) / len(extract_set)
+
+        precision = len(intersection_set) / len(extract_set) if len(extract_set) > 0 else 0.0
         recall = len(intersection_set) / len(answer_set)
         return precision, recall
 
