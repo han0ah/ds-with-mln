@@ -34,21 +34,18 @@ class MLNGenerator():
         feature_set = set()
         lexical_dep, grammatic_dep = self._get_dependency_feature_strs(obj)
         if (len(lexical_dep) > 0):
-            feature_set.add('#dependency_' + lexical_dep)
+            feature_set.add('#edp_dependency_' + lexical_dep)
         if (len(grammatic_dep) > 0):
-            feature_set.add('#dependency_' + grammatic_dep)
+            feature_set.add('#edp_dependency_' + grammatic_dep)
         for morp in obj['dependency_morp']:
-            if (self._is_valid_morp(morp)):
-                feature_set.add(morp)
-        for morp in obj['morp_left']:
-            if (self._is_valid_morp(morp)):
-                feature_set.add(morp)
-        for morp in obj['morp_right']:
-            if (self._is_valid_morp(morp)):
-                feature_set.add(morp)
-        for morp in obj['morp_middle']:
-            if (self._is_valid_morp(morp)):
-                feature_set.add(morp)
+            feature_set.add('#edp_depmorp_' + morp)
+        for morp in obj['arg1_mod']:
+            feature_set.add('#edp_arg1_mod_' + morp)
+        for morp in obj['arg2_mod']:
+            feature_set.add('#edp_arg2_mod_' + morp)
+        for morp in obj['context_lemma']:
+            feature_set.add(morp)
+
         return  feature_set
 
     def write_mln_data_for_train(self, data, train_db_name):
@@ -98,10 +95,9 @@ class MLNGenerator():
 
         # 너무 많거나 적은 feature는 제거
         feature_max = int(N / 2)
-        feature_min = 3
         feature_index = 0
         for feature in feature_counter:
-            feature_min = 2 if ('#dependency_' in feature) else 5  # dependency path feature는 2번만 나타나도 ㅇㅋ
+            feature_min = 2 if ('#edp_' in feature) else 4  # extended gsdp 요소는 적게 출현해도 OK
             if feature_counter[feature] >= feature_min and feature_counter[feature] <= feature_max:
                 feature_index += 1
                 feature_dic[feature] = 'F' + str(feature_index)
