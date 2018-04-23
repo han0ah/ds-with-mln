@@ -122,6 +122,22 @@ class ExtractRanker():
 
         return co_occur, relation_list
 
+    def calc_for_pr_curve(self, co_occur, relation_list, mentions, answer_set, instance_rels, threshold):
+        extract_set = set()
+        for pair in mentions:
+            for relation in relation_list:
+                high_val = -1000000
+                for instance in mentions[pair]:
+                    curr_p = instance_rels[instance][relation]
+                    if (curr_p > high_val):
+                        high_val = curr_p
+                if (high_val >= threshold):
+                    extract_set.add(pair + '-@-' + relation)
+
+        intersection_set = answer_set.intersection(extract_set)
+        precision = len(intersection_set) / len(extract_set)
+        recall = len(intersection_set) / len(answer_set)
+        return precision, recall
 
     def calc_precision_recall(self,co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set):
         rel_dic = {}
@@ -214,10 +230,52 @@ class ExtractRanker():
         f.close()
         return answer_set
 
+    def read_answer_for_pair(self):
+        answer_set = set()
+        f = open(config.data_path + 'answer_set.txt', 'r', encoding='utf-8')
+        for line in f:
+            line = line.strip()
+            if len(line) < 1:
+                continue
+            pair, relation = line.split('\t')
+            answer_set.add(pair + '-@-' + relation)
+        f.close()
+        return answer_set
+
+    def write_prec_recall_curve_data(self, co_occur, relation_list, mentions, answer_set, instance_rels):
+        pr_list = []
+        threshold_list = [i*0.005 for i in range(1,200)]
+        for i in threshold_list:
+            threshold = i
+            precision, recall = self.calc_for_pr_curve(co_occur, relation_list, mentions, answer_set, instance_rels, threshold)
+            if (len(pr_list) > 0):
+                if (int(recall * 100000) == int(pr_list[-1][1] * 100000)):
+                    if (precision > pr_list[-1][0]):
+                        pr_list[-1] = (precision, recall, threshold)
+                else:
+                    pr_list.append((precision, recall, threshold))
+            else:
+                pr_list.append((precision, recall, threshold))
+
+        f_write = open(config.data_path + 'pr_curve_data.txt', 'w', encoding='utf-8')
+        f_write.write('recall,precision\n')
+        X = []
+        Y = []
+        for item in pr_list:
+            precision = item[0]
+            recall = item[1]
+            print_str = "%.5lf,%.5lf\n" % (recall, precision)
+            X.append(recall)
+            Y.append(precision)
+            f_write.write(print_str)
+        f_write.close()
 
     def extract_rank(self):
         co_occur, relation_list = self.read_mln_result()
         mentions = self.read_instance_mention()
         instance_rels, instance_high_rel = self.read_mln_db()
         answer_set = self.read_answer()
+        answer_set_of_pair = self.read_answer_for_pair()
         self.calc_precision_recall(co_occur, relation_list, mentions, instance_rels, instance_high_rel, answer_set)
+        self.write_prec_recall_curve_data(co_occur, relation_list, mentions, answer_set_of_pair, instance_rels)
+
