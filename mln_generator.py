@@ -3,6 +3,52 @@ import config
 from collections import Counter
 
 class MLNGenerator():
+    def __init__(self):
+        self.entity_types = {}
+
+    def _init_entity_types(self):
+        type_hierarchy = {}
+        f = open('./data/dbpedia_type_hierarchy', 'r', encoding='utf-8')
+        for line in f:
+            if (len(line) < 2):
+                continue
+            o_type, level, parent = line.strip().split('\t')
+            if (':' in o_type):
+                continue
+            type_hierarchy[o_type.strip()] = {'level': int(level), 'parent': parent.strip()}
+        f.close()
+
+        f = open('./data/dbpedia_entity_type', 'r', encoding='utf-8')
+        for line in f:
+            if (len(line) < 2):
+                continue
+            e_name, types = line.strip().split('\t')
+            type_list = types.split(',')
+
+            max_type = ''
+            max_level = -1
+            for type in type_list:
+                if (type == 'Location'):
+                    type = 'Place'
+                if (type_hierarchy[type]['level'] > max_level):
+                    max_level = type_hierarchy[type]['level']
+                    max_type = type
+                    if (max_level == 3):
+                        break
+
+            self.entity_types[e_name] = []
+
+            while True:
+                if (type_hierarchy[max_type]['level'] <= 3):
+                    self.entity_types[e_name].append(max_type)
+                if (type_hierarchy[max_type]['level'] == 1):
+                    break
+                max_type = type_hierarchy[max_type]['parent']
+
+            self.entity_types[e_name].reverse()
+
+        f.close()
+
     def _get_entity_str(self,obj):
         return '(' + obj['sbj'] + '-@-' + obj['obj'] + ')'
 
@@ -49,6 +95,7 @@ class MLNGenerator():
         return  feature_set
 
     def write_mln_data_for_train(self, data, train_db_name):
+        self._init_entity_types()
         N = len(data)
         TRAIN_SIZE = len(data)+1
 
@@ -277,21 +324,17 @@ class MLNGenerator():
 
         # Arg1HasFea, Arg2HasFea 출력
         index = 0
-        is_printed = [False for i in range(N + 1)]
         for obj in data:
             index += 1
             instance_str = obj['instance_id']
-            instance_id = int(instance_str[1:])
-            if (is_printed[instance_id]):
-                continue
-            is_printed[instance_id] = True
+            f_out = f_train
 
-            arg1type = obj['sbj_ne']
-            arg2type = obj['obj_ne']
-            f_out = f_train if (index < TRAIN_SIZE) else f_test
-            if (arg1type != 'NONE' and arg1type in argfea_dict):
+            arg1_types = self.entity_types[obj['sbj'].strip()] if (obj['sbj'].strip() in self.entity_types)  else []
+            arg2_types = self.entity_types[obj['obj'].strip()] if (obj['obj'].strip() in self.entity_types)  else []
+
+            for arg1type in arg1_types:
                 f_out.write('Arg1HasFea(' + instance_str + ',' + arg1type + ')' + '\n')
-            if (arg2type != 'NONE' and arg2type in argfea_dict):
+            for arg2type in arg2_types:
                 f_out.write('Arg2HasFea(' + instance_str + ',' + arg2type + ')' + '\n')
 
         f_train.close()
@@ -322,6 +365,7 @@ class MLNGenerator():
         f_write.close()
 
     def write_mln_data(self,data,test_db_name,ist_matching_name):
+        self._init_entity_types()
         N = len(data)
         entity_dict = {}
         instance_dict = {}
@@ -462,21 +506,17 @@ class MLNGenerator():
 
         # Arg1HasFea, Arg2HasFea 출력
         index = 0
-        is_printed = [False for i in range(N + 1)]
         for obj in data:
             index += 1
             instance_str = obj['instance_id']
-            instance_id = int(instance_str[3:])
-            if (is_printed[instance_id]):
-                continue
-            is_printed[instance_id] = True
-
-            arg1type = obj['sbj_ne']
-            arg2type = obj['obj_ne']
             f_out = f_test
-            if (arg1type != 'NONE'):
+
+            arg1_types = self.entity_types[obj['sbj'].strip()] if (obj['sbj'].strip() in self.entity_types)  else []
+            arg2_types = self.entity_types[obj['obj'].strip()] if (obj['obj'].strip() in self.entity_types)  else []
+
+            for arg1type in arg1_types:
                 f_out.write('Arg1HasFea(' + instance_str + ',' + arg1type + ')' + '\n')
-            if (arg2type != 'NONE'):
+            for arg2type in arg2_types:
                 f_out.write('Arg2HasFea(' + instance_str + ',' + arg2type + ')' + '\n')
 
         f_test.close()
@@ -504,6 +544,7 @@ class MLNGenerator():
         f_write.close()
 
     def write_mln_data_for_raw(self,data,test_db_name,ist_matching_name):
+        self._init_entity_types()
         N = len(data)
         entity_dict = {}
         instance_dict = {}
@@ -638,23 +679,18 @@ class MLNGenerator():
 
         # Arg1HasFea, Arg2HasFea 출력
         index = 0
-        is_printed = [False for i in range(N + 1)]
         for obj in data:
             index += 1
             instance_str = obj['instance_id']
-            instance_id = int(instance_str[3:])
-            if (is_printed[instance_id]):
-                continue
-            is_printed[instance_id] = True
-
-            arg1type = obj['sbj_ne']
-            arg2type = obj['obj_ne']
             f_out = f_test
-            if (arg1type != 'NONE'):
-                f_out.write('Arg1HasFea(' + instance_str + ',' + arg1type + ')' + '\n')
-            if (arg2type != 'NONE'):
-                f_out.write('Arg2HasFea(' + instance_str + ',' + arg2type + ')' + '\n')
 
+            arg1_types = self.entity_types[obj['sbj'].strip()] if (obj['sbj'].strip() in self.entity_types)  else []
+            arg2_types = self.entity_types[obj['obj'].strip()] if (obj['obj'].strip() in self.entity_types)  else []
+
+            for arg1type in arg1_types:
+                f_out.write('Arg1HasFea(' + instance_str + ',' + arg1type + ')' + '\n')
+            for arg2type in arg2_types:
+                f_out.write('Arg2HasFea(' + instance_str + ',' + arg2type + ')' + '\n')
         f_test.close()
 
         # Instance Mapping
